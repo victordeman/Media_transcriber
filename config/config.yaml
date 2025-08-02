@@ -1,8 +1,7 @@
 transcription:
-  language: de-DE
+  language: en
   audio_formats: ['wav', 'mp3']
   video_formats: ['mp4', 'avi', 'mov']
-  chunk_length: 30000
   temp_audio_dir: data/raw/
 
 etl:

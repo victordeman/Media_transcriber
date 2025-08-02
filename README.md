@@ -1,13 +1,13 @@
 # Media Transcriber
 
-A Python-based transcription project for audio (WAV, MP3) and video (MP4, AVI, MOV) files, with support for German language. Includes an ETL pipeline and a Streamlit interface for file uploads and transcription.
+A Python-based transcription project for audio (WAV, MP3) and video (MP4, AVI, MOV) files, with support for English language using OpenAI Whisper. Includes an ETL pipeline and a Streamlit interface for file uploads and transcription.
 
 **Repository**: [https://github.com/victordeman/Media_transcriber](https://github.com/victordeman/Media_transcriber)
 
 ## Features
 - Upload audio/video files via a Streamlit web interface.
-- Transcribe files to text using Google Speech Recognition.
-- Support for German language transcription.
+- Transcribe files to text using OpenAI Whisper.
+- Support for English language transcription.
 - ETL pipeline to clean and format transcribed text into CSV.
 - Download raw transcriptions and CSV outputs.
 

@@ -18,14 +18,17 @@ def extract():
     
     for filename in os.listdir(raw_dir):
         if filename.endswith('.txt'):
-            with open(os.path.join(raw_dir, filename), 'r', encoding='utf-8') as f:
-                text = f.read().strip()
-                data.append({
-                    'filename': filename.replace('.txt', ''),
-                    'transcription': text,
-                    'language': 'de-DE',
-                    'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                })
+            try:
+                with open(os.path.join(raw_dir, filename), 'r', encoding='utf-8') as f:
+                    text = f.read().strip()
+                    data.append({
+                        'filename': filename.replace('.txt', ''),
+                        'transcription': text,
+                        'language': config['transcription']['language'],
+                        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    })
+            except Exception as e:
+                logger.error(f"Error reading {filename}: {e}")
     
     logger.info(f"Extracted {len(data)} transcriptions")
     return data
@@ -45,9 +48,13 @@ def load(df, output_dir, output_format):
     setup_logging()
     logger = logging.getLogger(__name__)
     output_path = os.path.join(output_dir, f"transcriptions_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{output_format}")
-    df.to_csv(output_path, index=False, encoding='utf-8')
-    logger.info(f"Saved output to {output_path}")
-    return output_path
+    try:
+        df.to_csv(output_path, index=False, encoding='utf-8')
+        logger.info(f"Saved output to {output_path}")
+        return output_path
+    except Exception as e:
+        logger.error(f"Error saving CSV to {output_path}: {e}")
+        return None
 
 def process_etl():
     """Run the ETL pipeline and return the output CSV path."""

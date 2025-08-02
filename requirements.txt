@@ -1,8 +1,7 @@
-speechrecognition==3.10.0
 pydub==0.25.1
 pandas==2.2.3
 langdetect==1.0.9
 pyyaml==6.0.2
-google-cloud-speech==2.26.0
 moviepy==1.0.3
 streamlit==1.39.0
+openai-whisper==20240930
