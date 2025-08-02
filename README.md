@@ -1,22 +1,10 @@
 # Media Transcriber
 
-# Setup Script for Media Transcriber
-
-This document describes how to use the `setup_project.sh` script to set up the project structure and files for the Media Transcriber project.
-
 ## Purpose
 The `setup_project.sh` script creates the directory structure and necessary files for the Media Transcriber project, a Python-based application for transcribing audio and video files using OpenAI Whisper with a Streamlit interface. It does not handle installations or Sig actions.
 
 ## Model Description
 The Media Transcriber project uses **OpenAI Whisper**, an automatic speech recognition (ASR) model, for transcribing audio and video files. Whisper is a transformer-based model trained on a large dataset of audio and text pairs, capable of transcribing English-language audio (WAV, MP3) and video (MP4, AVI, MOV) files with high accuracy. The script configures the project to use the `base` Whisper model by default, as specified in `src/transcribe.py`, balancing performance and resource efficiency.
-
-## Compatibility
-- **Operating System**: Linux
-- **Shell**: Bash
-
-## Prerequisites
-- Bash shell environment
-- Basic command-line utilities (`mkdir`, `cat`, `chmod`, `touch`)
 
 ## Requirements File
 The script generates a `requirements.txt` file in `Media_transcriber/` with the following Python dependencies required for the project:
