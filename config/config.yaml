@@ -1,0 +1,12 @@
+transcription:
+  language: de-DE
+  audio_formats: ['wav', 'mp3']
+  video_formats: ['mp4', 'avi', 'mov']
+  chunk_length: 30000
+  temp_audio_dir: data/raw/
+
+etl:
+  output_format: csv
+  output_dir: data/output/
+  raw_dir: data/raw/
+  columns: ['filename', 'transcription', 'language', 'timestamp']
