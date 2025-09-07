@@ -33,11 +33,51 @@ def check_raw_transcriptions():
 def main():
     setup_logging()
     st.title("Media Transcriber")
-    st.markdown("Upload an audio (WAV, MP3) or video (MP4, AVI, MOV) file to transcribe (English language supported).")
+    st.markdown("Upload an audio (WAV, MP3) or video (MP4, AVI, MOV) file to transcribe.")
 
+    # Load configuration
+    config = load_config()
+
+    # Language selection
+    st.subheader("Language Settings")
+    language_mode = st.radio(
+        "Language Detection",
+        ["Automatic", "Manual"],
+        help="Choose 'Automatic' to detect the language or 'Manual' to select a specific language."
+    )
+    selected_language = None
+    if language_mode == "Manual":
+        language_options = {lang["name"]: lang["code"] for lang in config["transcription"]["supported_languages"]}
+        selected_language_name = st.selectbox(
+            "Select Language",
+            list(language_options.keys()),
+            help="Choose the language for transcription."
+        )
+        selected_language = language_options[selected_language_name]
+    else:
+        selected_language = "auto"
+
+    # File format selection
+    st.subheader("File Format")
+    format_mode = st.radio(
+        "File Format Detection",
+        ["Automatic", "Manual"],
+        help="Choose 'Automatic' to detect file type or 'Manual' to specify audio or video."
+    )
+    selected_format = None
+    if format_mode == "Manual":
+        selected_format = st.selectbox(
+            "Select File Type",
+            ["Audio", "Video"],
+            help="Specify whether the file is audio or video."
+        )
+        selected_format = selected_format.lower()
+
+    # File uploader
     uploaded_file = st.file_uploader(
         "Choose an audio or video file",
-        type=["wav", "mp3", "mp4", "avi", "mov"]
+        type=config["transcription"]["audio_formats"] + config["transcription"]["video_formats"],
+        help="Supported formats: WAV, MP3 (audio); MP4, AVI, MOV (video)"
     )
 
     if uploaded_file is not None:
@@ -45,11 +85,11 @@ def main():
         file_path = save_uploaded_file(uploaded_file)
         
         if file_path:
-            config = load_config()
-
             if st.button("Transcribe"):
                 with st.spinner("Transcribing..."):
-                    transcription, detected_lang, raw_path = process_file(file_path, config)
+                    transcription, detected_lang, raw_path = process_file(
+                        file_path, config, language=selected_language, file_format=selected_format
+                    )
                     
                     if transcription:
                         st.success("Transcription completed!")

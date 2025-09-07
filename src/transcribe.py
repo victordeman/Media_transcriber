@@ -32,13 +32,22 @@ def transcribe_audio(audio_path, language="en", model_name="base"):
     logger = logging.getLogger(__name__)
     try:
         model = whisper.load_model(model_name)
-        result = model.transcribe(audio_path, language=language)
+        if language == "auto":
+            # Perform initial transcription to detect language
+            result = model.transcribe(audio_path, language=None)
+            detected_lang = result.get("language", "unknown")
+            if detected_lang == "unknown":
+                logger.warning(f"Language detection failed for {audio_path}, defaulting to English")
+                detected_lang = "en"
+        else:
+            detected_lang = language
+            result = model.transcribe(audio_path, language=language)
         transcription = result["text"].strip()
-        logger.info(f"Transcription for {audio_path}: {transcription}")
-        return transcription if transcription else None
+        logger.info(f"Transcription for {audio_path}: {transcription} (Language: {detected_lang})")
+        return transcription, detected_lang if transcription else (None, "unknown")
     except Exception as e:
         logger.error(f"Error transcribing {audio_path}: {e}")
-        return None
+        return None, "unknown"
 
 def save_raw_transcription(filename, text):
     """Save transcription to a text file and return the path."""
@@ -48,34 +57,55 @@ def save_raw_transcription(filename, text):
         f.write(text)
     return raw_path
 
-def process_file(file_path, config):
-    """Process an audio or video file and return transcription and raw file path."""
-    language = config['transcription']['language']
-    temp_audio_dir = config['transcription']['temp_audio_dir']
+def process_file(file_path, config, language="en", file_format=None):
+    """Process an audio or video file and return transcription, detected language, and raw file path."""
+    setup_logging()
+    logger = logging.getLogger(__name__)
     audio_formats = config['transcription']['audio_formats']
     video_formats = config['transcription']['video_formats']
+    temp_audio_dir = config['transcription']['temp_audio_dir']
     base_filename = os.path.splitext(os.path.basename(file_path))[0]
-
+    
     os.makedirs(temp_audio_dir, exist_ok=True)
 
-    if file_path.endswith(tuple(audio_formats)):
-        transcription = transcribe_audio(file_path, language)
+    # Determine file format
+    if file_format is None or file_format == "auto":
+        file_ext = os.path.splitext(file_path)[1].lower().lstrip('.')
+        if file_ext in audio_formats:
+            file_format = "audio"
+        elif file_ext in video_formats:
+            file_format = "video"
+        else:
+            logger.error(f"Unsupported file extension: {file_ext}")
+            return None, "unknown", None
+    else:
+        file_format = file_format.lower()
+
+    # Validate file format
+    if file_format == "audio" and os.path.splitext(file_path)[1].lstrip('.') not in audio_formats:
+        logger.error(f"File {file_path} is not a supported audio format: {audio_formats}")
+        return None, "unknown", None
+    elif file_format == "video" and os.path.splitext(file_path)[1].lstrip('.') not in video_formats:
+        logger.error(f"File {file_path} is not a supported video format: {video_formats}")
+        return None, "unknown", None
+
+    # Process based on file format
+    if file_format == "audio":
+        transcription, detected_lang = transcribe_audio(file_path, language)
         if transcription:
             raw_path = save_raw_transcription(base_filename, transcription)
-            detected_lang = detect(transcription) if transcription else "unknown"
             return transcription, detected_lang, raw_path
-        return None, None, None
-
-    elif file_path.endswith(tuple(video_formats)):
+        return None, "unknown", None
+    elif file_format == "video":
         temp_audio_path = os.path.join(temp_audio_dir, f"{base_filename}_temp.wav")
         audio_path = extract_audio_from_video(file_path, temp_audio_path)
         if audio_path:
-            transcription = transcribe_audio(audio_path, language)
-            os.remove(temp_audio_path)
+            transcription, detected_lang = transcribe_audio(audio_path, language)
+            if os.path.exists(temp_audio_path):
+                os.remove(temp_audio_path)
             if transcription:
                 raw_path = save_raw_transcription(base_filename, transcription)
-                detected_lang = detect(transcription) if transcription else "unknown"
                 return transcription, detected_lang, raw_path
-        return None, None, None
+        return None, "unknown", None
 
-    return None, None, None
+    return None, "unknown", None
